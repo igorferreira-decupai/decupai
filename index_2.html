@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decupa.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #f7f5f1;
+    --bg2:    #efece6;
+    --bg3:    #e8e4dc;
+    --ink:    #1a1916;
+    --ink2:   #6b6860;
+    --ink3:   #b0ada6;
+    --accent: #c0301a;
+    --ok:     #2a7a4a;
+    --border: #dedad3;
+    --serif:  'Playfair Display', Georgia, serif;
+    --sans:   'Geist', 'Helvetica Neue', sans-serif;
+    --sidebar:260px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); display: flex; flex-direction: column; }
+
+  /* TOPBAR */
+  .topbar {
+    height: 52px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; background: var(--bg); flex-shrink: 0; z-index: 10;
+  }
+  .logo { font-family: var(--serif); font-size: 18px; font-weight: 400; cursor: pointer; }
+  .logo span { color: var(--accent); }
+  .topbar-center { font-size: 12px; font-weight: 300; color: var(--ink3); letter-spacing: .06em; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .btn-sm {
+    background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 7px 16px; cursor: pointer; transition: background .2s;
+  }
+  .btn-sm:hover { background: var(--accent); }
+  .btn-sm.ghost {
+    background: transparent; color: var(--ink2);
+    border: 1px solid var(--border);
+  }
+  .btn-sm.ghost:hover { background: var(--bg2); border-color: var(--ink3); color: var(--ink); }
+
+  /* LAYOUT */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    background: var(--bg); flex-shrink: 0; overflow: hidden;
+  }
+  .sidebar-top {
+    padding: 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .btn-new-proj {
+    width: 100%; background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 10px; cursor: pointer; transition: background .2s;
+  }
+  .btn-new-proj:hover { background: var(--accent); }
+
+  .sidebar-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .sidebar-label {
+    font-size: 10px; font-weight: 400; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink3);
+    padding: 12px 16px 6px;
+  }
+  .proj-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px; cursor: pointer; transition: background .15s;
+    border-left: 2px solid transparent;
+  }
+  .proj-item:hover { background: var(--bg2); }
+  .proj-item.active { background: var(--bg3); border-left-color: var(--ink); }
+  .proj-icon { font-size: 13px; flex-shrink: 0; }
+  .proj-info { flex: 1; min-width: 0; }
+  .proj-name {
+    font-size: 12px; font-weight: 400; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .proj-meta { font-size: 10px; font-weight: 300; color: var(--ink3); margin-top: 1px; }
+  .proj-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .proj-dot.done { background: var(--ok); }
+  .proj-dot.proc { background: var(--accent); }
+  .proj-dot.empty { background: var(--border); }
+
+  .sidebar-empty {
+    padding: 24px 16px; font-size: 12px; font-weight: 300;
+    color: var(--ink3); line-height: 1.6; text-align: center;
+  }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* SETUP SCREEN */
+  .setup-screen {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px; gap: 0;
+  }
+  .setup-card {
+    width: 100%; max-width: 480px;
+    border: 1px solid var(--border); background: var(--bg);
+  }
+  .setup-header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .setup-eyebrow {
+    font-size: 10px; font-weight: 400; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink3); margin-bottom: 8px;
+  }
+  .setup-title {
+    font-family: var(--serif); font-size: 26px; font-weight: 400;
+    letter-spacing: -.01em; line-height: 1.15;
+  }
+  .setup-title em { font-style: italic; color: var(--accent); }
+  .setup-body { padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; }
+  .field-label {
+    font-size: 10px; font-weight: 400; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink3); margin-bottom: 8px;
+  }
+  .field-input {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 300;
+    padding: 12px 14px; outline: none; transition: border-color .2s;
+  }
+  .field-input:focus { border-color: var(--ink); }
+  .field-input::placeholder { color: var(--ink3); }
+  .field-note {
+    font-size: 11px; font-weight: 300; color: var(--ink3);
+    margin-top: 6px; line-height: 1.5;
+  }
+  .field-note a { color: var(--ink2); }
+  .btn-full {
+    width: 100%; background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 14px; cursor: pointer; transition: background .2s; margin-top: 4px;
+  }
+  .btn-full:hover { background: var(--accent); }
+
+  /* UPLOAD SCREEN */
+  .upload-screen {
+    flex: 1; display: none; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px 24px; gap: 20px;
+  }
+  .upload-eyebrow {
+    font-size: 10px; font-weight: 400; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink3);
+  }
+  .upload-title {
+    font-family: var(--serif); font-size: 32px; font-weight: 400;
+    letter-spacing: -.01em; text-align: center; line-height: 1.1;
+  }
+  .upload-title em { font-style: italic; color: var(--accent); }
+  .drop-zone {
+    width: 100%; max-width: 500px; border: 1px dashed var(--ink3);
+    padding: 48px 32px; text-align: center; cursor: pointer;
+    transition: all .2s; position: relative;
+  }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--ink); background: var(--bg2); }
+  .drop-arrow { font-size: 24px; margin-bottom: 12px; display: block; color: var(--ink2); }
+  .drop-text { font-size: 14px; font-weight: 400; color: var(--ink); margin-bottom: 4px; }
+  .drop-sub  { font-size: 12px; font-weight: 300; color: var(--ink3); margin-bottom: 20px; }
+  .drop-btn {
+    display: inline-block; background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase; padding: 9px 22px; cursor: pointer;
+  }
+  .drop-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .divider-or {
+    display: flex; align-items: center; gap: 12px; width: 100%; max-width: 500px;
+  }
+  .divider-or::before, .divider-or::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .divider-or span { font-size: 11px; font-weight: 300; color: var(--ink3); letter-spacing: .1em; }
+
+  .paste-area {
+    width: 100%; max-width: 600px; height: 220px;
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 300;
+    padding: 16px 18px; resize: vertical; outline: none; line-height: 1.7;
+    transition: border-color .2s;
+  }
+  .paste-area:focus { border-color: var(--ink); }
+  .paste-area::placeholder { color: var(--ink3); }
+
+  .proj-name-row {
+    width: 100%; max-width: 600px; display: flex; gap: 8px;
+  }
+  .proj-name-input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 300;
+    padding: 10px 14px; outline: none; transition: border-color .2s;
+  }
+  .proj-name-input:focus { border-color: var(--ink); }
+  .proj-name-input::placeholder { color: var(--ink3); }
+  .btn-decupar {
+    background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 10px 20px; cursor: pointer; transition: background .2s; white-space: nowrap;
+  }
+  .btn-decupar:hover { background: var(--accent); }
+  .btn-decupar:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* PROCESSING */
+  .proc-screen {
+    flex: 1; display: none; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px; gap: 24px;
+  }
+  .proc-file { font-size: 12px; font-weight: 300; color: var(--ink3); letter-spacing: .06em; }
+  .proc-title {
+    font-family: var(--serif); font-size: 26px; font-weight: 400;
+    text-align: center; letter-spacing: -.01em;
+  }
+  .proc-title em { font-style: italic; color: var(--accent); }
+  .proc-steps { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 360px; }
+  .proc-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border: 1px solid var(--border);
+    font-size: 12px; font-weight: 300; color: var(--ink3); background: var(--bg2);
+    transition: all .3s;
+  }
+  .proc-step.active { border-color: var(--ink); color: var(--ink); background: var(--bg3); }
+  .proc-step.done   { border-color: var(--border); color: var(--ink2); background: var(--bg); }
+  .proc-step-ic { font-size: 12px; width: 16px; text-align: center; flex-shrink: 0; }
+  .proc-bar-wrap { width: 100%; max-width: 360px; height: 1px; background: var(--border); overflow: hidden; }
+  .proc-bar { height: 100%; background: var(--ink); width: 0; transition: width .5s ease; }
+
+  /* RESULT */
+  .result-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+
+  .result-bar {
+    height: 48px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; flex-shrink: 0; background: var(--bg);
+  }
+  .result-info { display: flex; align-items: center; gap: 10px; }
+  .result-name { font-size: 13px; font-weight: 400; }
+  .result-sub  { font-size: 11px; font-weight: 300; color: var(--ink3); }
+  .result-btns { display: flex; gap: 8px; }
+
+  .result-body { flex: 1; display: flex; overflow: hidden; }
+
+  /* TABS */
+  .res-tabs {
+    width: 180px; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 12px 0;
+    flex-shrink: 0; overflow-y: auto; background: var(--bg);
+  }
+  .res-tab-label {
+    font-size: 10px; font-weight: 400; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink3);
+    padding: 10px 16px 4px;
+  }
+  .res-tab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; cursor: pointer; transition: background .15s;
+    font-size: 12px; font-weight: 300; color: var(--ink2);
+    border-right: 2px solid transparent;
+  }
+  .res-tab:hover { background: var(--bg2); color: var(--ink); }
+  .res-tab.active { background: var(--bg3); color: var(--ink); font-weight: 400; border-right-color: var(--ink); }
+  .res-tab-badge {
+    margin-left: auto; font-size: 10px; color: var(--ink3);
+    background: var(--bg2); padding: 1px 5px; border-radius: 8px;
+  }
+
+  /* CONTENT */
+  .res-content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+  /* SCENE CARDS */
+  .scene-card { border: 1px solid var(--border); margin-bottom: 12px; background: var(--bg); }
+  .scene-card:hover { border-color: var(--ink3); }
+  .scene-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; cursor: pointer; user-select: none;
+    border-bottom: 1px solid transparent; transition: border-color .2s;
+  }
+  .scene-card.open .scene-hdr { border-color: var(--border); }
+  .scene-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .scene-num { font-size: 10px; font-weight: 400; letter-spacing: .1em; color: var(--ink3); min-width: 28px; }
+  .scene-slug { font-family: var(--serif); font-size: 15px; font-weight: 400; }
+  .tag {
+    font-size: 10px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 7px; border: 1px solid var(--border); color: var(--ink2); background: var(--bg2);
+  }
+  .tag.warn { border-color: #dda090; color: var(--accent); background: #fdf0ee; }
+  .tag.ok   { border-color: #90c0a0; color: var(--ok);    background: #eef7f2; }
+  .scene-toggle { font-size: 10px; color: var(--ink3); transition: transform .2s; }
+  .scene-card.open .scene-toggle { transform: rotate(180deg); }
+  .scene-body { display: none; padding: 16px 18px; }
+  .scene-card.open .scene-body { display: block; }
+
+  .fgrid { display: grid; grid-template-columns: 90px 1fr; }
+  .fkey {
+    font-size: 10px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink3); padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--border); display: flex; align-items: flex-start;
+  }
+  .fval {
+    font-size: 13px; font-weight: 300; color: var(--ink);
+    padding: 8px 0; border-bottom: 1px solid var(--border); line-height: 1.6;
+  }
+  .fval.warn { color: var(--accent); }
+  .fval.ok   { color: var(--ok); }
+  .fkey:last-of-type, .fval:last-of-type { border-bottom: none; }
+
+  /* TABLES */
+  .res-section { margin-bottom: 32px; }
+  .res-section-title {
+    font-family: var(--serif); font-size: 20px; font-weight: 400;
+    letter-spacing: -.01em; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  table.rtable { width: 100%; border-collapse: collapse; }
+  table.rtable th {
+    font-size: 10px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink3); text-align: left; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); background: var(--bg2);
+  }
+  table.rtable td {
+    font-size: 12px; font-weight: 300; color: var(--ink);
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    vertical-align: top; line-height: 1.5;
+  }
+  table.rtable tr:last-child td { border-bottom: none; }
+  table.rtable tr:hover td { background: var(--bg2); }
+
+  /* EXEC GRID */
+  .exec-grid {
+    display: grid; grid-template-columns: repeat(2,1fr);
+    gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 28px;
+  }
+  .exec-cell { background: var(--bg); padding: 20px 24px; }
+  .exec-label { font-size: 10px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); margin-bottom: 6px; }
+  .exec-val { font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: -.02em; line-height: 1; }
+  .exec-val.ok { color: var(--ok); }
+
+  /* FLAGS */
+  .flags { display: flex; flex-direction: column; gap: 8px; }
+  .flag {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; border: 1px solid #dda090; background: #fdf0ee;
+  }
+  .flag-n { font-size: 10px; font-weight: 500; color: var(--accent); letter-spacing: .08em; margin-top: 1px; flex-shrink: 0; }
+  .flag-t { font-size: 13px; font-weight: 300; color: var(--ink); line-height: 1.6; }
+  .flag-t strong { font-weight: 500; color: var(--accent); }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ERROR */
+  .error-box {
+    padding: 14px 16px; border: 1px solid #dda090; background: #fdf0ee;
+    font-size: 13px; font-weight: 300; color: var(--accent);
+    margin-bottom: 16px; line-height: 1.6;
+  }
+
+  /* EMPTY STATE */
+  .empty-result {
+    padding: 48px 32px; text-align: center;
+  }
+  .empty-result p { font-size: 14px; font-weight: 300; color: var(--ink3); line-height: 1.7; }
+
+  /* STREAMING */
+  .streaming-text {
+    font-family: var(--sans); font-size: 13px; font-weight: 300;
+    color: var(--ink); line-height: 1.8; white-space: pre-wrap;
+    padding: 4px 0;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo" onclick="goHome()">decupa<span>.ai</span></div>
+  <div class="topbar-center" id="topbar-label">—</div>
+  <div class="topbar-right">
+    <button class="btn-sm ghost" onclick="goHome()">+ Nova</button>
+
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <button class="btn-new-proj" onclick="goHome()">+ Nova decupagem</button>
+    </div>
+    <div class="sidebar-list" id="sidebar-list">
+      <div class="sidebar-label">Projetos</div>
+      <div class="sidebar-empty" id="sidebar-empty">Nenhum projeto ainda.<br>Sobe um roteiro para começar.</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SETUP (disabled) -->
+    <div class="setup-screen" id="setup-screen">
+      <div class="setup-card">
+        <div class="setup-header">
+          <div class="setup-eyebrow">Configuração inicial</div>
+          <div class="setup-title">Conecta sua<br><em>chave de API.</em></div>
+        </div>
+        <div class="setup-body">
+          <div>
+            <div class="field-label">Chave de API — Anthropic</div>
+            <input type="password" class="field-input" id="api-key-input" placeholder="sk-ant-api03-..." />
+            <div class="field-note">
+              Sua chave fica salva só neste navegador. Nunca sai daqui.<br>
+              Não tem chave? <a href="https://console.anthropic.com" target="_blank">console.anthropic.com →</a>
+            </div>
+          </div>
+          <button class="btn-full" onclick="saveApiKey()">Salvar e começar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-screen" id="upload-screen">
+      <div class="upload-eyebrow">Nova decupagem</div>
+      <div class="upload-title">Cole o roteiro.<br><em>A IA faz o resto.</em></div>
+      <p style="font-size:14px;font-weight:300;color:var(--ink2);max-width:500px;text-align:center;line-height:1.7;">
+        Copie o texto do roteiro, guia de criação ou tratamento criativo e cole abaixo.<br>
+        <span style="color:var(--ink3);">PDF: abra no Preview → Cmd+A → Cmd+C · Word: Cmd+A → Cmd+C</span>
+      </p>
+
+      <textarea class="paste-area" id="paste-area" placeholder="Cole o roteiro aqui — PDF, Word, qualquer formato de texto..."></textarea>
+
+      <div class="proj-name-row">
+        <input type="text" class="proj-name-input" id="proj-name-input" placeholder="Nome do projeto (ex: Motorola Q1 — Filme Bortoleto)" />
+        <button class="btn-decupar" id="btn-decupar" onclick="startDecupagem()">Decupar →</button>
+      </div>
+    </div>
+
+    <!-- PROCESSING -->
+    <div class="proc-screen" id="proc-screen">
+      <div class="proc-file" id="proc-file-label">processando...</div>
+      <div class="proc-title">Lendo o roteiro.<br><em>Um momento.</em></div>
+      <div class="proc-steps" id="proc-steps">
+        <div class="proc-step active" id="ps-1"><span class="proc-step-ic spin">◌</span> Lendo e normalizando</div>
+        <div class="proc-step" id="ps-2"><span class="proc-step-ic">○</span> Identificando cenas</div>
+        <div class="proc-step" id="ps-3"><span class="proc-step-ic">○</span> Extraindo elementos</div>
+        <div class="proc-step" id="ps-4"><span class="proc-step-ic">○</span> Calculando dias</div>
+        <div class="proc-step" id="ps-5"><span class="proc-step-ic">○</span> Gerando flags</div>
+      </div>
+      <div class="proc-bar-wrap"><div class="proc-bar" id="proc-bar"></div></div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-screen" id="result-screen">
+      <div class="result-bar">
+        <div class="result-info">
+          <div>
+            <div class="result-name" id="res-name">—</div>
+            <div class="result-sub" id="res-sub">—</div>
+          </div>
+        </div>
+        <div class="result-btns">
+          <button class="btn-sm ghost" onclick="copyResult()">Copiar texto</button>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="res-tabs" id="res-tabs">
+          <div class="res-tab-label">Resultado</div>
+          <div class="res-tab active" onclick="showTab('raw',this)">
+            <span>📄</span> Decupagem completa
+          </div>
+          <div class="res-tab-label" style="margin-top:8px">Projeto</div>
+          <div class="res-tab" onclick="showTab('info',this)">
+            <span>◎</span> Informações
+          </div>
+        </div>
+        <div class="res-content">
+          <div class="panel active" id="panel-raw">
+            <div id="result-output" class="streaming-text"></div>
+          </div>
+          <div class="panel" id="panel-info">
+            <div id="proj-info-panel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+
+let projects = JSON.parse(localStorage.getItem('decupa_projects') || '[]');
+let currentText = '';
+let currentFile = '';
+
+// ── INIT ──
+window.onload = () => {
+  renderSidebar();
+  showScreen('upload');
+};
+
+// ── SCREENS ──
+function showScreen(name) {
+  ['setup','upload','proc','result'].forEach(s => {
+    document.getElementById(s+'-screen').style.display = 'none';
+  });
+  document.getElementById(name+'-screen').style.display = 'flex';
+}
+
+function showSetup() {
+  document.getElementById('api-key-input').value = apiKey;
+  showScreen('setup');
+  document.getElementById('topbar-label').textContent = 'Configuração';
+}
+
+function goHome() {
+  if (!apiKey) { showScreen('setup'); return; }
+  showScreen('upload');
+  document.getElementById('topbar-label').textContent = '—';
+  currentText = '';
+  currentFile = '';
+  document.getElementById('paste-area').value = '';
+  document.getElementById('proj-name-input').value = '';
+  document.querySelectorAll('.proj-item').forEach(p => p.classList.remove('active'));
+}
+
+// ── API KEY ──
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-ant')) {
+    alert('Chave inválida. Deve começar com sk-ant-api03-');
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('decupa_api_key', apiKey);
+  document.getElementById('btn-config').style.display = 'block';
+  showScreen('upload');
+  document.getElementById('topbar-label').textContent = '—';
+}
+
+// ── DRAG & DROP ──
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('over'); }
+function onDragLeave()  { document.getElementById('drop-zone').classList.remove('over'); }
+function onDrop(e) {
+  e.preventDefault(); document.getElementById('drop-zone').classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+}
+function onFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) readFile(file);
+}
+async function readFile(file) {
+  currentFile = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const projInput = document.getElementById('proj-name-input');
+  if (!projInput.value) projInput.value = file.name.replace(/\.[^.]+$/, '');
+
+  const dz = document.getElementById('drop-zone');
+  const decuparBtn = document.getElementById('btn-decupar');
+  dz.querySelector('.drop-arrow').textContent = '⏳';
+  dz.querySelector('.drop-text').textContent = 'Lendo arquivo...';
+  dz.querySelector('.drop-sub').textContent = '';
+  decuparBtn.disabled = true;
+  decuparBtn.textContent = 'Aguarde...';
+
+  try {
+    if (ext === 'pdf') {
+      // Read PDF as ArrayBuffer and extract text manually
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      
+      // Convert to string preserving latin chars
+      let raw = '';
+      for (let i = 0; i < bytes.length; i++) {
+        const b = bytes[i];
+        if (b === 10 || b === 13 || (b >= 32 && b <= 126)) {
+          raw += String.fromCharCode(b);
+        } else if (b >= 128 && b <= 255) {
+          raw += String.fromCharCode(b);
+        }
+      }
+      
+      // Method 1: extract text from parentheses in PDF stream (Tj/TJ operators)
+      const tjMatches = [];
+      const re1 = /\(([^\)\\]{1,200})\)\s*Tj/g;
+      const re2 = /\[((?:\([^\)]*\)|[\d\s\-]+)+)\]\s*TJ/g;
+      let m;
+      while ((m = re1.exec(raw)) !== null) {
+        tjMatches.push(m[1].replace(/\\n/g,'\n').replace(/\\r/g,'').replace(/\\\\/g,'\\').replace(/\\(.)/g,'$1'));
+      }
+      while ((m = re2.exec(raw)) !== null) {
+        const inner = m[1].replace(/\([^\)]*\)/g, s => s.slice(1,-1));
+        if (inner.trim().length > 2) tjMatches.push(inner);
+      }
+      
+      // Method 2: grab readable text blocks as fallback
+      const readable = raw.match(/[A-Za-zÀ-ÿ\u00C0-\u024F0-9][A-Za-zÀ-ÿ\u00C0-\u024F0-9 ,.:;!?\-'"()\/]{10,}/g) || [];
+      
+      currentText = tjMatches.length > 10
+        ? tjMatches.join(' ').replace(/\s+/g,' ').trim()
+        : readable.join(' ').replace(/\s+/g,' ').trim();
+      
+      // If still too short, use all readable chars
+      if (currentText.length < 100) {
+        currentText = readable.join('\n').replace(/\s+/g,' ').trim();
+      }
+
+    } else if (ext === 'docx') {
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const idx = binary.indexOf('word/document.xml');
+      const xmlText = idx >= 0 ? binary.slice(idx, idx + 300000) : binary;
+      currentText = xmlText
+        .replace(/<w:p[\s>]/g, '\n').replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&apos;/g,"'").replace(/&quot;/g,'"')
+        .replace(/\r/g,'').replace(/\n{3,}/g,'\n\n').trim();
+
+    } else {
+      currentText = await file.text();
+    }
+
+    document.getElementById('paste-area').value = currentText.substring(0, 5000) + (currentText.length > 5000 ? '\n[...continua]' : '');
+    showFileConfirm(file.name, currentText.length);
+
+  } catch(err) {
+    console.error('Erro ao ler arquivo:', err);
+    showFileConfirm(file.name, 0);
+  }
+
+  decuparBtn.disabled = false;
+  decuparBtn.textContent = 'Decupar →';
+}
+
+function showFileConfirm(name, len) {
+  const dz = document.getElementById('drop-zone');
+  if (len > 100) {
+    dz.style.borderColor = 'var(--ok)';
+    dz.style.background = '#eef7f2';
+    dz.querySelector('.drop-arrow').textContent = '✓';
+    dz.querySelector('.drop-text').textContent = name;
+    dz.querySelector('.drop-sub').textContent = `${len} caracteres extraídos — pronto para decupar`;
+  } else {
+    dz.style.borderColor = 'var(--accent)';
+    dz.style.background = '#fdf0ee';
+    dz.querySelector('.drop-arrow').textContent = '!';
+    dz.querySelector('.drop-text').textContent = 'Não consegui ler o texto deste arquivo';
+    dz.querySelector('.drop-sub').textContent = 'Copie o texto do roteiro (Cmd+A → Cmd+C) e cole na área abaixo';
+    document.getElementById('paste-area').focus();
+  }
+  setTimeout(() => {
+    dz.style.borderColor = '';
+    dz.style.background = '';
+  }, 5000);
+}
+
+// ── DECUPAGEM ──
+async function startDecupagem() {
+  const text = document.getElementById('paste-area').value.trim() || currentText;
+  const projName = document.getElementById('proj-name-input').value.trim() || 'Projeto ' + new Date().toLocaleDateString('pt-BR');
+
+  if (!text) { alert('Cole o roteiro ou faça upload de um arquivo.'); return; }
+
+
+  currentText = text;
+
+  // show proc screen
+  showScreen('proc');
+  document.getElementById('proc-file-label').textContent = currentFile || projName;
+  document.getElementById('topbar-label').textContent = 'Processando...';
+  animateSteps();
+
+  const systemPrompt = `Você é o DecupaAI — assistente de direção sênior especializado em produção publicitária brasileira.
+
+Sua função é analisar roteiros e retornar EXCLUSIVAMENTE um objeto JSON válido. NENHUM texto fora do JSON. NENHUM markdown. NENHUMA explicação.
+
+Retorne exatamente este JSON:
+
+{
+  "projeto": {
+    "tipo": "TVC 30\" + 15\"",
+    "total_cenas": 8,
+    "total_locacoes": 5,
+    "total_atores": 3,
+    "total_figurantes": 20,
+    "dias_estimados": 3,
+    "distribuicao_dias": "Dia 1: Cenas 1,7 (estúdio) · Dia 2: Cenas 2,3,4,5 (residência) · Dia 3: Cena 6 (externo)"
+  },
+  "cenas": [
+    {
+      "numero": 1,
+      "ambiente": "INT",
+      "locacao": "Estúdio Claro",
+      "periodo": "DIA",
+      "sinopse": "Tiago apresenta campanha no estúdio tech da Claro",
+      "protagonista": { "nome": "Tiago Leifert", "descricao": "Apresentador/porta-voz, 40s" },
+      "coadjuvantes": [],
+      "figuracao": { "quantidade": 0, "descricao": "Não necessária" },
+      "figurino": [
+        { "personagem": "Tiago", "look": "Casual tech — camisa/polo tons neutros" }
+      ],
+      "props": ["Tablet", "Fone bluetooth premium", "Cadeira moderna"],
+      "arte": "Cenário estúdio tech Claro, Sol Claro, accent lights, letterings fixos",
+      "audio": "Sync Tiago + GCs letterings",
+      "produto": "Sol Claro em destaque, lettering 0800 e site",
+      "vfx": "GCs letterings, animação sol, color grading Claro",
+      "atencao": "Confirmar agenda Tiago. Gravar takes c/ e s/ fone.",
+      "tempo_horas": "4-5h"
+    }
+  ],
+  "consolidados": {
+    "locacoes": [
+      { "nome": "Estúdio Claro", "tipo": "INT", "periodo": "DIA", "cenas": "1, 7", "obs": "Cenário proprietário. Agendar com antecedência." }
+    ],
+    "elenco": [
+      { "personagem": "Tiago Leifert", "tipo": "PROTAGONISTA", "cenas": "1, 7", "figurino": "Casual tech neutro", "obs": "Confirmar agenda" },
+      { "personagem": "Bia", "tipo": "PROTAGONISTA", "cenas": "2,3,4,5,6,8", "figurino": "Casual casa geração Z", "obs": "18-25a, boa expressão facial" }
+    ],
+    "props_arte": [
+      { "item": "Tablet", "cenas": "1,2,3,4,5,6", "categoria": "Prop principal", "obs": "Tela inserida em pós" }
+    ]
+  },
+  "flags": [
+    { "numero": 1, "texto": "Confirmar agenda Tiago Leifert antes de qualquer reserva de locação", "urgencia": "alta" },
+    { "numero": 2, "texto": "Animal em cena (cachorro) — handler obrigatório, testes de comportamento antes do dia de filmagem", "urgencia": "alta" },
+    { "numero": 3, "texto": "Cena 5 (embaixo da escada) — verificar viabilidade técnica para equipe e equipamento em espaço confinado", "urgencia": "media" }
+  ]
+}
+
+REGRAS ABSOLUTAS:
+- Retorne APENAS o JSON, sem nenhum texto antes ou depois
+- Adapte todos os campos ao roteiro recebido
+- Para figuração: estime com base no ambiente (restaurante = 8-15 figurantes, rua movimentada = 20-40, casa = 0-3, etc.)
+- Se não houver coadjuvantes, use array vazio []
+- Se não houver produto em cena, use string vazia ""
+- urgencia das flags: "alta", "media" ou "baixa"
+- Identifique TODAS as cenas do roteiro, não apenas as primeiras`;d>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decupa.AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:     #f7f5f1;
+    --bg2:    #efece6;
+    --bg3:    #e8e4dc;
+    --ink:    #1a1916;
+    --ink2:   #6b6860;
+    --ink3:   #b0ada6;
+    --accent: #c0301a;
+    --ok:     #2a7a4a;
+    --border: #dedad3;
+    --serif:  'Playfair Display', Georgia, serif;
+    --sans:   'Geist', 'Helvetica Neue', sans-serif;
+    --sidebar:260px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); display: flex; flex-direction: column; }
+
+  /* TOPBAR */
+  .topbar {
+    height: 52px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; background: var(--bg); flex-shrink: 0; z-index: 10;
+  }
+  .logo { font-family: var(--serif); font-size: 18px; font-weight: 400; cursor: pointer; }
+  .logo span { color: var(--accent); }
+  .topbar-center { font-size: 12px; font-weight: 300; color: var(--ink3); letter-spacing: .06em; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .btn-sm {
+    background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 7px 16px; cursor: pointer; transition: background .2s;
+  }
+  .btn-sm:hover { background: var(--accent); }
+  .btn-sm.ghost {
+    background: transparent; color: var(--ink2);
+    border: 1px solid var(--border);
+  }
+  .btn-sm.ghost:hover { background: var(--bg2); border-color: var(--ink3); color: var(--ink); }
+
+  /* LAYOUT */
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    background: var(--bg); flex-shrink: 0; overflow: hidden;
+  }
+  .sidebar-top {
+    padding: 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .btn-new-proj {
+    width: 100%; background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 10px; cursor: pointer; transition: background .2s;
+  }
+  .btn-new-proj:hover { background: var(--accent); }
+
+  .sidebar-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .sidebar-label {
+    font-size: 10px; font-weight: 400; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink3);
+    padding: 12px 16px 6px;
+  }
+  .proj-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 16px; cursor: pointer; transition: background .15s;
+    border-left: 2px solid transparent;
+  }
+  .proj-item:hover { background: var(--bg2); }
+  .proj-item.active { background: var(--bg3); border-left-color: var(--ink); }
+  .proj-icon { font-size: 13px; flex-shrink: 0; }
+  .proj-info { flex: 1; min-width: 0; }
+  .proj-name {
+    font-size: 12px; font-weight: 400; color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .proj-meta { font-size: 10px; font-weight: 300; color: var(--ink3); margin-top: 1px; }
+  .proj-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .proj-dot.done { background: var(--ok); }
+  .proj-dot.proc { background: var(--accent); }
+  .proj-dot.empty { background: var(--border); }
+
+  .sidebar-empty {
+    padding: 24px 16px; font-size: 12px; font-weight: 300;
+    color: var(--ink3); line-height: 1.6; text-align: center;
+  }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* SETUP SCREEN */
+  .setup-screen {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px; gap: 0;
+  }
+  .setup-card {
+    width: 100%; max-width: 480px;
+    border: 1px solid var(--border); background: var(--bg);
+  }
+  .setup-header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .setup-eyebrow {
+    font-size: 10px; font-weight: 400; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink3); margin-bottom: 8px;
+  }
+  .setup-title {
+    font-family: var(--serif); font-size: 26px; font-weight: 400;
+    letter-spacing: -.01em; line-height: 1.15;
+  }
+  .setup-title em { font-style: italic; color: var(--accent); }
+  .setup-body { padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; }
+  .field-label {
+    font-size: 10px; font-weight: 400; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink3); margin-bottom: 8px;
+  }
+  .field-input {
+    width: 100%; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 300;
+    padding: 12px 14px; outline: none; transition: border-color .2s;
+  }
+  .field-input:focus { border-color: var(--ink); }
+  .field-input::placeholder { color: var(--ink3); }
+  .field-note {
+    font-size: 11px; font-weight: 300; color: var(--ink3);
+    margin-top: 6px; line-height: 1.5;
+  }
+  .field-note a { color: var(--ink2); }
+  .btn-full {
+    width: 100%; background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 12px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 14px; cursor: pointer; transition: background .2s; margin-top: 4px;
+  }
+  .btn-full:hover { background: var(--accent); }
+
+  /* UPLOAD SCREEN */
+  .upload-screen {
+    flex: 1; display: none; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px 24px; gap: 20px;
+  }
+  .upload-eyebrow {
+    font-size: 10px; font-weight: 400; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink3);
+  }
+  .upload-title {
+    font-family: var(--serif); font-size: 32px; font-weight: 400;
+    letter-spacing: -.01em; text-align: center; line-height: 1.1;
+  }
+  .upload-title em { font-style: italic; color: var(--accent); }
+  .drop-zone {
+    width: 100%; max-width: 500px; border: 1px dashed var(--ink3);
+    padding: 48px 32px; text-align: center; cursor: pointer;
+    transition: all .2s; position: relative;
+  }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--ink); background: var(--bg2); }
+  .drop-arrow { font-size: 24px; margin-bottom: 12px; display: block; color: var(--ink2); }
+  .drop-text { font-size: 14px; font-weight: 400; color: var(--ink); margin-bottom: 4px; }
+  .drop-sub  { font-size: 12px; font-weight: 300; color: var(--ink3); margin-bottom: 20px; }
+  .drop-btn {
+    display: inline-block; background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase; padding: 9px 22px; cursor: pointer;
+  }
+  .drop-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+  .divider-or {
+    display: flex; align-items: center; gap: 12px; width: 100%; max-width: 500px;
+  }
+  .divider-or::before, .divider-or::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .divider-or span { font-size: 11px; font-weight: 300; color: var(--ink3); letter-spacing: .1em; }
+
+  .paste-area {
+    width: 100%; max-width: 600px; height: 220px;
+    background: var(--bg2); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 300;
+    padding: 16px 18px; resize: vertical; outline: none; line-height: 1.7;
+    transition: border-color .2s;
+  }
+  .paste-area:focus { border-color: var(--ink); }
+  .paste-area::placeholder { color: var(--ink3); }
+
+  .proj-name-row {
+    width: 100%; max-width: 600px; display: flex; gap: 8px;
+  }
+  .proj-name-input {
+    flex: 1; background: var(--bg2); border: 1px solid var(--border);
+    color: var(--ink); font-family: var(--sans); font-size: 13px; font-weight: 300;
+    padding: 10px 14px; outline: none; transition: border-color .2s;
+  }
+  .proj-name-input:focus { border-color: var(--ink); }
+  .proj-name-input::placeholder { color: var(--ink3); }
+  .btn-decupar {
+    background: var(--ink); color: var(--bg); border: none;
+    font-family: var(--sans); font-size: 11px; font-weight: 500;
+    letter-spacing: .1em; text-transform: uppercase;
+    padding: 10px 20px; cursor: pointer; transition: background .2s; white-space: nowrap;
+  }
+  .btn-decupar:hover { background: var(--accent); }
+  .btn-decupar:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* PROCESSING */
+  .proc-screen {
+    flex: 1; display: none; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px; gap: 24px;
+  }
+  .proc-file { font-size: 12px; font-weight: 300; color: var(--ink3); letter-spacing: .06em; }
+  .proc-title {
+    font-family: var(--serif); font-size: 26px; font-weight: 400;
+    text-align: center; letter-spacing: -.01em;
+  }
+  .proc-title em { font-style: italic; color: var(--accent); }
+  .proc-steps { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 360px; }
+  .proc-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border: 1px solid var(--border);
+    font-size: 12px; font-weight: 300; color: var(--ink3); background: var(--bg2);
+    transition: all .3s;
+  }
+  .proc-step.active { border-color: var(--ink); color: var(--ink); background: var(--bg3); }
+  .proc-step.done   { border-color: var(--border); color: var(--ink2); background: var(--bg); }
+  .proc-step-ic { font-size: 12px; width: 16px; text-align: center; flex-shrink: 0; }
+  .proc-bar-wrap { width: 100%; max-width: 360px; height: 1px; background: var(--border); overflow: hidden; }
+  .proc-bar { height: 100%; background: var(--ink); width: 0; transition: width .5s ease; }
+
+  /* RESULT */
+  .result-screen { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+
+  .result-bar {
+    height: 48px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; flex-shrink: 0; background: var(--bg);
+  }
+  .result-info { display: flex; align-items: center; gap: 10px; }
+  .result-name { font-size: 13px; font-weight: 400; }
+  .result-sub  { font-size: 11px; font-weight: 300; color: var(--ink3); }
+  .result-btns { display: flex; gap: 8px; }
+
+  .result-body { flex: 1; display: flex; overflow: hidden; }
+
+  /* TABS */
+  .res-tabs {
+    width: 180px; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 12px 0;
+    flex-shrink: 0; overflow-y: auto; background: var(--bg);
+  }
+  .res-tab-label {
+    font-size: 10px; font-weight: 400; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink3);
+    padding: 10px 16px 4px;
+  }
+  .res-tab {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; cursor: pointer; transition: background .15s;
+    font-size: 12px; font-weight: 300; color: var(--ink2);
+    border-right: 2px solid transparent;
+  }
+  .res-tab:hover { background: var(--bg2); color: var(--ink); }
+  .res-tab.active { background: var(--bg3); color: var(--ink); font-weight: 400; border-right-color: var(--ink); }
+  .res-tab-badge {
+    margin-left: auto; font-size: 10px; color: var(--ink3);
+    background: var(--bg2); padding: 1px 5px; border-radius: 8px;
+  }
+
+  /* CONTENT */
+  .res-content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+
+  /* SCENE CARDS */
+  .scene-card { border: 1px solid var(--border); margin-bottom: 12px; background: var(--bg); }
+  .scene-card:hover { border-color: var(--ink3); }
+  .scene-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px; cursor: pointer; user-select: none;
+    border-bottom: 1px solid transparent; transition: border-color .2s;
+  }
+  .scene-card.open .scene-hdr { border-color: var(--border); }
+  .scene-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .scene-num { font-size: 10px; font-weight: 400; letter-spacing: .1em; color: var(--ink3); min-width: 28px; }
+  .scene-slug { font-family: var(--serif); font-size: 15px; font-weight: 400; }
+  .tag {
+    font-size: 10px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase;
+    padding: 2px 7px; border: 1px solid var(--border); color: var(--ink2); background: var(--bg2);
+  }
+  .tag.warn { border-color: #dda090; color: var(--accent); background: #fdf0ee; }
+  .tag.ok   { border-color: #90c0a0; color: var(--ok);    background: #eef7f2; }
+  .scene-toggle { font-size: 10px; color: var(--ink3); transition: transform .2s; }
+  .scene-card.open .scene-toggle { transform: rotate(180deg); }
+  .scene-body { display: none; padding: 16px 18px; }
+  .scene-card.open .scene-body { display: block; }
+
+  .fgrid { display: grid; grid-template-columns: 90px 1fr; }
+  .fkey {
+    font-size: 10px; font-weight: 400; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--ink3); padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--border); display: flex; align-items: flex-start;
+  }
+  .fval {
+    font-size: 13px; font-weight: 300; color: var(--ink);
+    padding: 8px 0; border-bottom: 1px solid var(--border); line-height: 1.6;
+  }
+  .fval.warn { color: var(--accent); }
+  .fval.ok   { color: var(--ok); }
+  .fkey:last-of-type, .fval:last-of-type { border-bottom: none; }
+
+  /* TABLES */
+  .res-section { margin-bottom: 32px; }
+  .res-section-title {
+    font-family: var(--serif); font-size: 20px; font-weight: 400;
+    letter-spacing: -.01em; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  table.rtable { width: 100%; border-collapse: collapse; }
+  table.rtable th {
+    font-size: 10px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink3); text-align: left; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); background: var(--bg2);
+  }
+  table.rtable td {
+    font-size: 12px; font-weight: 300; color: var(--ink);
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    vertical-align: top; line-height: 1.5;
+  }
+  table.rtable tr:last-child td { border-bottom: none; }
+  table.rtable tr:hover td { background: var(--bg2); }
+
+  /* EXEC GRID */
+  .exec-grid {
+    display: grid; grid-template-columns: repeat(2,1fr);
+    gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 28px;
+  }
+  .exec-cell { background: var(--bg); padding: 20px 24px; }
+  .exec-label { font-size: 10px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--ink3); margin-bottom: 6px; }
+  .exec-val { font-family: var(--serif); font-size: 30px; font-weight: 400; letter-spacing: -.02em; line-height: 1; }
+  .exec-val.ok { color: var(--ok); }
+
+  /* FLAGS */
+  .flags { display: flex; flex-direction: column; gap: 8px; }
+  .flag {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; border: 1px solid #dda090; background: #fdf0ee;
+  }
+  .flag-n { font-size: 10px; font-weight: 500; color: var(--accent); letter-spacing: .08em; margin-top: 1px; flex-shrink: 0; }
+  .flag-t { font-size: 13px; font-weight: 300; color: var(--ink); line-height: 1.6; }
+  .flag-t strong { font-weight: 500; color: var(--accent); }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ERROR */
+  .error-box {
+    padding: 14px 16px; border: 1px solid #dda090; background: #fdf0ee;
+    font-size: 13px; font-weight: 300; color: var(--accent);
+    margin-bottom: 16px; line-height: 1.6;
+  }
+
+  /* EMPTY STATE */
+  .empty-result {
+    padding: 48px 32px; text-align: center;
+  }
+  .empty-result p { font-size: 14px; font-weight: 300; color: var(--ink3); line-height: 1.7; }
+
+  /* STREAMING */
+  .streaming-text {
+    font-family: var(--sans); font-size: 13px; font-weight: 300;
+    color: var(--ink); line-height: 1.8; white-space: pre-wrap;
+    padding: 4px 0;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo" onclick="goHome()">decupa<span>.ai</span></div>
+  <div class="topbar-center" id="topbar-label">—</div>
+  <div class="topbar-right">
+    <button class="btn-sm ghost" onclick="goHome()">+ Nova</button>
+    <button class="btn-sm ghost" id="btn-config" onclick="showSetup()" style="display:none">⚙ API</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <button class="btn-new-proj" onclick="goHome()">+ Nova decupagem</button>
+    </div>
+    <div class="sidebar-list" id="sidebar-list">
+      <div class="sidebar-label">Projetos</div>
+      <div class="sidebar-empty" id="sidebar-empty">Nenhum projeto ainda.<br>Sobe um roteiro para começar.</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- SETUP -->
+    <div class="setup-screen" id="setup-screen">
+      <div class="setup-card">
+        <div class="setup-header">
+          <div class="setup-eyebrow">Configuração inicial</div>
+          <div class="setup-title">Conecta sua<br><em>chave de API.</em></div>
+        </div>
+        <div class="setup-body">
+          <div>
+            <div class="field-label">Chave de API — Anthropic</div>
+            <input type="password" class="field-input" id="api-key-input" placeholder="sk-ant-api03-..." />
+            <div class="field-note">
+              Sua chave fica salva só neste navegador. Nunca sai daqui.<br>
+              Não tem chave? <a href="https://console.anthropic.com" target="_blank">console.anthropic.com →</a>
+            </div>
+          </div>
+          <button class="btn-full" onclick="saveApiKey()">Salvar e começar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-screen" id="upload-screen">
+      <div class="upload-eyebrow">Nova decupagem</div>
+      <div class="upload-title">Cole o roteiro.<br><em>A IA faz o resto.</em></div>
+      <p style="font-size:14px;font-weight:300;color:var(--ink2);max-width:500px;text-align:center;line-height:1.7;">
+        Copie o texto do roteiro, guia de criação ou tratamento criativo e cole abaixo.<br>
+        <span style="color:var(--ink3);">PDF: abra no Preview → Cmd+A → Cmd+C · Word: Cmd+A → Cmd+C</span>
+      </p>
+
+      <textarea class="paste-area" id="paste-area" placeholder="Cole o roteiro aqui — PDF, Word, qualquer formato de texto..."></textarea>
+
+      <div class="proj-name-row">
+        <input type="text" class="proj-name-input" id="proj-name-input" placeholder="Nome do projeto (ex: Motorola Q1 — Filme Bortoleto)" />
+        <button class="btn-decupar" id="btn-decupar" onclick="startDecupagem()">Decupar →</button>
+      </div>
+    </div>
+
+    <!-- PROCESSING -->
+    <div class="proc-screen" id="proc-screen">
+      <div class="proc-file" id="proc-file-label">processando...</div>
+      <div class="proc-title">Lendo o roteiro.<br><em>Um momento.</em></div>
+      <div class="proc-steps" id="proc-steps">
+        <div class="proc-step active" id="ps-1"><span class="proc-step-ic spin">◌</span> Lendo e normalizando</div>
+        <div class="proc-step" id="ps-2"><span class="proc-step-ic">○</span> Identificando cenas</div>
+        <div class="proc-step" id="ps-3"><span class="proc-step-ic">○</span> Extraindo elementos</div>
+        <div class="proc-step" id="ps-4"><span class="proc-step-ic">○</span> Calculando dias</div>
+        <div class="proc-step" id="ps-5"><span class="proc-step-ic">○</span> Gerando flags</div>
+      </div>
+      <div class="proc-bar-wrap"><div class="proc-bar" id="proc-bar"></div></div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-screen" id="result-screen">
+      <div class="result-bar">
+        <div class="result-info">
+          <div>
+            <div class="result-name" id="res-name">—</div>
+            <div class="result-sub" id="res-sub">—</div>
+          </div>
+        </div>
+        <div class="result-btns">
+          <button class="btn-sm ghost" onclick="copyResult()">Copiar texto</button>
+        </div>
+      </div>
+      <div class="result-body">
+        <div class="res-tabs" id="res-tabs">
+          <div class="res-tab-label">Resultado</div>
+          <div class="res-tab active" onclick="showTab('raw',this)">
+            <span>📄</span> Decupagem completa
+          </div>
+          <div class="res-tab-label" style="margin-top:8px">Projeto</div>
+          <div class="res-tab" onclick="showTab('info',this)">
+            <span>◎</span> Informações
+          </div>
+        </div>
+        <div class="res-content">
+          <div class="panel active" id="panel-raw">
+            <div id="result-output" class="streaming-text"></div>
+          </div>
+          <div class="panel" id="panel-info">
+            <div id="proj-info-panel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let apiKey = localStorage.getItem('decupa_api_key') || '';
+let projects = JSON.parse(localStorage.getItem('decupa_projects') || '[]');
+let currentText = '';
+let currentFile = '';
+
+// ── INIT ──
+window.onload = () => {
+  renderSidebar();
+  showScreen('upload');
+};
+
+// ── SCREENS ──
+function showScreen(name) {
+  ['setup','upload','proc','result'].forEach(s => {
+    document.getElementById(s+'-screen').style.display = 'none';
+  });
+  document.getElementById(name+'-screen').style.display = 'flex';
+}
+
+function showSetup() {
+  document.getElementById('api-key-input').value = apiKey;
+  showScreen('setup');
+  document.getElementById('topbar-label').textContent = 'Configuração';
+}
+
+function goHome() {
+  if (!apiKey) { showScreen('setup'); return; }
+  showScreen('upload');
+  document.getElementById('topbar-label').textContent = '—';
+  currentText = '';
+  currentFile = '';
+  document.getElementById('paste-area').value = '';
+  document.getElementById('proj-name-input').value = '';
+  document.querySelectorAll('.proj-item').forEach(p => p.classList.remove('active'));
+}
+
+// ── API KEY ──
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-ant')) {
+    alert('Chave inválida. Deve começar com sk-ant-api03-');
+    return;
+  }
+  apiKey = val;
+  localStorage.setItem('decupa_api_key', apiKey);
+  document.getElementById('btn-config').style.display = 'block';
+  showScreen('upload');
+  document.getElementById('topbar-label').textContent = '—';
+}
+
+// ── DRAG & DROP ──
+function onDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('over'); }
+function onDragLeave()  { document.getElementById('drop-zone').classList.remove('over'); }
+function onDrop(e) {
+  e.preventDefault(); document.getElementById('drop-zone').classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) readFile(file);
+}
+function onFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) readFile(file);
+}
+async function readFile(file) {
+  currentFile = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const projInput = document.getElementById('proj-name-input');
+  if (!projInput.value) projInput.value = file.name.replace(/\.[^.]+$/, '');
+
+  const dz = document.getElementById('drop-zone');
+  const decuparBtn = document.getElementById('btn-decupar');
+  dz.querySelector('.drop-arrow').textContent = '⏳';
+  dz.querySelector('.drop-text').textContent = 'Lendo arquivo...';
+  dz.querySelector('.drop-sub').textContent = '';
+  decuparBtn.disabled = true;
+  decuparBtn.textContent = 'Aguarde...';
+
+  try {
+    if (ext === 'pdf') {
+      // Read PDF as ArrayBuffer and extract text manually
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      
+      // Convert to string preserving latin chars
+      let raw = '';
+      for (let i = 0; i < bytes.length; i++) {
+        const b = bytes[i];
+        if (b === 10 || b === 13 || (b >= 32 && b <= 126)) {
+          raw += String.fromCharCode(b);
+        } else if (b >= 128 && b <= 255) {
+          raw += String.fromCharCode(b);
+        }
+      }
+      
+      // Method 1: extract text from parentheses in PDF stream (Tj/TJ operators)
+      const tjMatches = [];
+      const re1 = /\(([^\)\\]{1,200})\)\s*Tj/g;
+      const re2 = /\[((?:\([^\)]*\)|[\d\s\-]+)+)\]\s*TJ/g;
+      let m;
+      while ((m = re1.exec(raw)) !== null) {
+        tjMatches.push(m[1].replace(/\\n/g,'\n').replace(/\\r/g,'').replace(/\\\\/g,'\\').replace(/\\(.)/g,'$1'));
+      }
+      while ((m = re2.exec(raw)) !== null) {
+        const inner = m[1].replace(/\([^\)]*\)/g, s => s.slice(1,-1));
+        if (inner.trim().length > 2) tjMatches.push(inner);
+      }
+      
+      // Method 2: grab readable text blocks as fallback
+      const readable = raw.match(/[A-Za-zÀ-ÿ\u00C0-\u024F0-9][A-Za-zÀ-ÿ\u00C0-\u024F0-9 ,.:;!?\-'"()\/]{10,}/g) || [];
+      
+      currentText = tjMatches.length > 10
+        ? tjMatches.join(' ').replace(/\s+/g,' ').trim()
+        : readable.join(' ').replace(/\s+/g,' ').trim();
+      
+      // If still too short, use all readable chars
+      if (currentText.length < 100) {
+        currentText = readable.join('\n').replace(/\s+/g,' ').trim();
+      }
+
+    } else if (ext === 'docx') {
+      const arrayBuffer = await file.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+      const idx = binary.indexOf('word/document.xml');
+      const xmlText = idx >= 0 ? binary.slice(idx, idx + 300000) : binary;
+      currentText = xmlText
+        .replace(/<w:p[\s>]/g, '\n').replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&apos;/g,"'").replace(/&quot;/g,'"')
+        .replace(/\r/g,'').replace(/\n{3,}/g,'\n\n').trim();
+
+    } else {
+      currentText = await file.text();
+    }
+
+    document.getElementById('paste-area').value = currentText.substring(0, 5000) + (currentText.length > 5000 ? '\n[...continua]' : '');
+    showFileConfirm(file.name, currentText.length);
+
+  } catch(err) {
+    console.error('Erro ao ler arquivo:', err);
+    showFileConfirm(file.name, 0);
+  }
+
+  decuparBtn.disabled = false;
+  decuparBtn.textContent = 'Decupar →';
+}
+
+function showFileConfirm(name, len) {
+  const dz = document.getElementById('drop-zone');
+  if (len > 100) {
+    dz.style.borderColor = 'var(--ok)';
+    dz.style.background = '#eef7f2';
+    dz.querySelector('.drop-arrow').textContent = '✓';
+    dz.querySelector('.drop-text').textContent = name;
+    dz.querySelector('.drop-sub').textContent = `${len} caracteres extraídos — pronto para decupar`;
+  } else {
+    dz.style.borderColor = 'var(--accent)';
+    dz.style.background = '#fdf0ee';
+    dz.querySelector('.drop-arrow').textContent = '!';
+    dz.querySelector('.drop-text').textContent = 'Não consegui ler o texto deste arquivo';
+    dz.querySelector('.drop-sub').textContent = 'Copie o texto do roteiro (Cmd+A → Cmd+C) e cole na área abaixo';
+    document.getElementById('paste-area').focus();
+  }
+  setTimeout(() => {
+    dz.style.borderColor = '';
+    dz.style.background = '';
+  }, 5000);
+}
+
+// ── DECUPAGEM ──
+async function startDecupagem() {
+  const text = document.getElementById('paste-area').value.trim() || currentText;
+  const projName = document.getElementById('proj-name-input').value.trim() || 'Projeto ' + new Date().toLocaleDateString('pt-BR');
+
+  if (!text) { alert('Cole o roteiro ou faça upload de um arquivo.'); return; }
+  if (!apiKey) { showSetup(); return; }
+
+  currentText = text;
+
+  // show proc screen
+  showScreen('proc');
+  document.getElementById('proc-file-label').textContent = currentFile || projName;
+  document.getElementById('topbar-label').textContent = 'Processando...';
+  animateSteps();
+
+  const systemPrompt = `Você é o DecupaAI — assistente de direção sênior com 15 anos de experiência em produção publicitária brasileira. Sua única função é gerar decupagens técnicas estruturadas. NUNCA reescreva o roteiro. NUNCA faça resumos em prosa. SEMPRE use o formato abaixo, sem exceção.
+
+═══════════════════════════════════════
+FORMATO OBRIGATÓRIO DE OUTPUT
+═══════════════════════════════════════
+
+Para CADA cena do roteiro, gere um bloco exatamente assim:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CENA [N] · [INT/EXT] · [LOCAÇÃO] · [DIA/NOITE]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SINOPSE        | [1-2 linhas do que acontece na cena]
+PROTAGONISTA   | [Nome e descrição do personagem principal]
+COADJUVANTES   | [Lista de personagens secundários com descrição]
+FIGURAÇÃO/BG   | [Quantidade e tipo de figuração necessária]
+LOCAÇÃO        | [Descrição detalhada do ambiente]
+FIGURINO       | [Descrição de roupa/look de cada personagem]
+PROPS          | [Lista de objetos manuseados em cena]
+ARTE/CENÁRIO   | [Elementos de decoração e cenário]
+ÁUDIO          | [Observações de som, música, playback]
+PRODUTO        | [Como o produto/marca aparece — se houver]
+FX / VFX       | [Efeitos especiais físicos ou digitais]
+ATENÇÃO        | [Alertas de produção — dificuldades, riscos, custos]
+TEMPO EST.     | [Estimativa de horas de filmagem]
+
+[Repita esse bloco para cada cena]
+
+═══════════════════════════════════════
+CONSOLIDADOS
+═══════════════════════════════════════
+
+LOCAÇÕES
+Locação | INT/EXT | Dia/Noite | Cenas | Obs
+
+ELENCO COMPLETO
+Personagem | Tipo (Prot/Coad/BG) | Cenas | Figurino | Obs
+
+PROPS & ARTE
+Item | Cena(s) | Categoria | Obs
+
+═══════════════════════════════════════
+RESUMO EXECUTIVO
+═══════════════════════════════════════
+Total de cenas    : [N]
+Locações únicas   : [N]
+Elenco principal  : [lista]
+Dias estimados    : [N dias]
+Distribuição      : Dia 1: cenas X,Y | Dia 2: cenas Z,W | ...
+
+═══════════════════════════════════════
+⚠ ATENÇÃO EXECUTIVA
+═══════════════════════════════════════
+[01] [Ponto crítico + encaminhamento]
+[02] [Ponto crítico + encaminhamento]
+[03] [Ponto crítico + encaminhamento]
+
+═══════════════════════════════════════
+
+REGRAS ABSOLUTAS:
+- NUNCA escreva parágrafos descritivos ou narrativos
+- NUNCA reescreva o roteiro com outras palavras
+- SEMPRE use o formato de tabela com | como separador
+- Se uma informação não existir no roteiro, escreva [não especificado]
+- Se o material for guia de criação e não roteiro técnico, infira as cenas e sinalize com [inferido]
+- Use vocabulário do mercado brasileiro: props, arte, figuração, BG, pack shot, PE, AD, DF`;
+
+  try {
+    const response = await fetch('/api/decupa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Por favor, faça a decupagem técnica completa deste material:\n\n${text}` }]
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error?.message || 'Erro na API');
+    }
+
+    const data = await response.json();
+    const rawText = data.content.map(b => b.type === 'text' ? b.text : '').join('');
+    
+    // Parse JSON response
+    let parsed = null;
+    try {
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+    } catch(e) {
+      console.error('JSON parse error:', e);
+    }
+
+    // save project
+    const proj = {
+      id: Date.now(),
+      name: projName,
+      date: new Date().toLocaleDateString('pt-BR'),
+      cenas: parsed ? (parsed.projeto?.total_cenas || parsed.cenas?.length || 0) : (rawText.match(/CENA \d+/g) || []).length,
+      result: rawText,
+      parsed: parsed,
+      input: text.substring(0, 500)
+    };
+    projects.unshift(proj);
+    localStorage.setItem('decupa_projects', JSON.stringify(projects));
+    renderSidebar();
+    showResult(proj);
+
+  } catch (err) {
+    showScreen('upload');
+    document.getElementById('topbar-label').textContent = '—';
+    alert('Erro ao processar: ' + err.message);
+  }
+}
+
+function animateSteps() {
+  const steps = ['ps-1','ps-2','ps-3','ps-4','ps-5'];
+  const labels = [
+    'Lendo e normalizando',
+    'Identificando cenas',
+    'Extraindo elementos',
+    'Calculando dias',
+    'Gerando flags'
+  ];
+  const delays = [0, 1200, 2400, 3600, 4600];
+
+  steps.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'proc-step';
+    el.innerHTML = `<span class="proc-step-ic">○</span> ${labels[i]}`;
+  });
+
+  document.getElementById('ps-1').className = 'proc-step active';
+  document.getElementById('ps-1').innerHTML = `<span class="proc-step-ic spin">◌</span> ${labels[0]}`;
+
+  delays.forEach((delay, i) => {
+    if (i === 0) return;
+    setTimeout(() => {
+      document.getElementById(steps[i-1]).className = 'proc-step done';
+      document.getElementById(steps[i-1]).innerHTML = `<span class="proc-step-ic">✓</span> ${labels[i-1]}`;
+      document.getElementById(steps[i]).className = 'proc-step active';
+      document.getElementById(steps[i]).innerHTML = `<span class="proc-step-ic spin">◌</span> ${labels[i]}`;
+      document.getElementById('proc-bar').style.width = (i / steps.length * 100) + '%';
+    }, delay);
+  });
+}
+
+// ── RESULT ──
+function showResult(proj) {
+  showScreen('result');
+  document.getElementById('topbar-label').textContent = proj.name;
+  document.getElementById('res-name').textContent = proj.name;
+  document.getElementById('res-sub').textContent = `${proj.cenas} cenas · ${proj.date}`;
+
+  const out = document.getElementById('result-output');
+  if (proj.parsed) {
+    out.innerHTML = renderVisual(proj.parsed);
+  } else {
+    out.innerHTML = `<pre style="white-space:pre-wrap;font-size:12px;font-weight:300;line-height:1.8;color:var(--ink2)">${proj.result.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>`;
+  }
+
+  document.getElementById('proj-info-panel').innerHTML = `
+    <div class="exec-grid">
+      <div class="exec-cell"><div class="exec-label">Projeto</div><div style="font-family:var(--serif);font-size:16px;font-weight:400;margin-top:4px">${proj.name}</div></div>
+      <div class="exec-cell"><div class="exec-label">Data</div><div style="font-size:13px;font-weight:300;margin-top:4px;color:var(--ink2)">${proj.date}</div></div>
+      <div class="exec-cell"><div class="exec-label">Cenas</div><div class="exec-val">${proj.cenas}</div></div>
+      <div class="exec-cell"><div class="exec-label">Status</div><div class="exec-val ok" style="font-size:14px;margin-top:6px">Concluído</div></div>
+    </div>`;
+
+  document.querySelectorAll('.proj-item').forEach(p => {
+    p.classList.toggle('active', p.dataset.id == proj.id);
+  });
+}
+
+function renderVisual(d) {
+  const p = d.projeto || {};
+  const cenas = d.cenas || [];
+  const cons = d.consolidados || {};
+  const flags = d.flags || [];
+
+  // Urgency colors
+  const urgColor = { alta: '#c0301a', media: '#b07020', baixa: '#2a7a4a' };
+  const urgBg    = { alta: '#fdf0ee', media: '#fdf6ee', baixa: '#eef7f2' };
+  const urgBorder= { alta: '#dda090', media: '#ddc090', baixa: '#90c0a0' };
+
+  // Summary strip
+  let html = `
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:28px">
+    ${[
+      ['Cenas', p.total_cenas || cenas.length],
+      ['Locações', p.total_locacoes || '—'],
+      ['Atores', p.total_atores || '—'],
+      ['Figurantes', p.total_figurantes || '—'],
+      ['Dias est.', p.dias_estimados ? p.dias_estimados+'d' : '—'],
+    ].map(([l,v]) => `
+      <div style="background:var(--bg);padding:18px 16px">
+        <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px">${l}</div>
+        <div style="font-family:var(--serif);font-size:28px;font-weight:400;letter-spacing:-.02em;line-height:1;color:var(--ink)">${v}</div>
+      </div>`).join('')}
+  </div>`;
+
+  if (p.distribuicao_dias) {
+    html += `<div style="padding:12px 16px;background:var(--bg2);border:1px solid var(--border);font-size:12px;font-weight:300;color:var(--ink2);line-height:1.6;margin-bottom:28px">
+      <span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-right:10px">Distribuição</span>${p.distribuicao_dias}
+    </div>`;
+  }
+
+  // Scene cards
+  html += `<div style="font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px">Cenas</div>`;
+
+  cenas.forEach(c => {
+    const tags = [
+      c.ambiente,
+      c.periodo,
+      c.protagonista?.nome ? '1 protagonista' : '',
+      c.coadjuvantes?.length ? `${c.coadjuvantes.length} coadj.` : '',
+      c.figuracao?.quantidade > 0 ? `${c.figuracao.quantidade} figurantes` : '',
+    ].filter(Boolean);
+
+    const hasWarn = c.atencao && c.atencao !== 'Não especificado' && c.atencao.length > 3;
+
+    html += `
+    <div style="border:1px solid var(--border);margin-bottom:12px;background:var(--bg)">
+      <!-- header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;background:var(--bg2)"
+           onclick="this.parentElement.querySelector('.scene-body').style.display = this.parentElement.querySelector('.scene-body').style.display==='none'?'block':'none'">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:400;letter-spacing:.1em;color:var(--ink3);min-width:48px">CENA ${c.numero}</span>
+          <span style="font-family:var(--serif);font-size:15px;font-weight:400;color:var(--ink)">${c.locacao}</span>
+          ${tags.map(t => `<span style="font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border:1px solid var(--border);color:var(--ink2);background:var(--bg)">${t}</span>`).join('')}
+          ${hasWarn ? `<span style="font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border:1px solid #dda090;color:#c0301a;background:#fdf0ee">⚠ atenção</span>` : ''}
+        </div>
+        <span style="font-size:12px;font-weight:300;color:var(--ink3)">${c.tempo_horas || '—'} ▾</span>
+      </div>
+
+      <!-- body -->
+      <div class="scene-body" style="padding:16px;display:none">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+          <!-- sinopse full width -->
+          <div style="grid-column:span 2;padding:10px 12px;background:var(--bg2);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Sinopse</div>
+            <div style="font-size:13px;font-weight:300;color:var(--ink);line-height:1.6">${c.sinopse || '—'}</div>
+          </div>
+
+          <!-- protagonista -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Protagonista</div>
+            <div style="font-size:13px;font-weight:400;color:var(--ink)">${c.protagonista?.nome || '—'}</div>
+            <div style="font-size:11px;font-weight:300;color:var(--ink2);margin-top:2px">${c.protagonista?.descricao || ''}</div>
+          </div>
+
+          <!-- coadjuvantes -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Coadjuvantes</div>
+            ${c.coadjuvantes?.length ? c.coadjuvantes.map(x => `<div style="font-size:13px;font-weight:300;color:var(--ink);line-height:1.6">${typeof x === 'object' ? (x.nome || x.personagem || JSON.stringify(x)) : x}</div>`).join('') : '<div style="font-size:12px;font-weight:300;color:var(--ink3)">—</div>'}
+          </div>
+
+          <!-- figuracao -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Figuração / BG</div>
+            <div style="font-size:20px;font-weight:400;font-family:var(--serif);color:var(--ink);line-height:1">${c.figuracao?.quantidade ?? '—'}</div>
+            <div style="font-size:11px;font-weight:300;color:var(--ink2);margin-top:3px">${c.figuracao?.descricao || ''}</div>
+          </div>
+
+          <!-- figurino -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Figurino</div>
+            ${(c.figurino || []).map(f => `<div style="font-size:12px;font-weight:300;color:var(--ink);line-height:1.6"><span style="font-weight:400">${f.personagem}:</span> ${f.look}</div>`).join('') || '<div style="font-size:12px;color:var(--ink3)">—</div>'}
+          </div>
+
+          <!-- props -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:6px">Props</div>
+            <div style="display:flex;flex-wrap:wrap;gap:5px">
+              ${(c.props || []).map(pr => `<span style="font-size:11px;padding:2px 8px;border:1px solid var(--border);background:var(--bg2);color:var(--ink2)">${pr}</span>`).join('') || '—'}
+            </div>
+          </div>
+
+          <!-- arte -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Arte / Cenário</div>
+            <div style="font-size:12px;font-weight:300;color:var(--ink);line-height:1.6">${c.arte || '—'}</div>
+          </div>
+
+          <!-- audio -->
+          <div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Áudio</div>
+            <div style="font-size:12px;font-weight:300;color:var(--ink);line-height:1.6">${c.audio || '—'}</div>
+          </div>
+
+          <!-- produto -->
+          ${c.produto ? `<div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">Produto / Pack shot</div>
+            <div style="font-size:12px;font-weight:300;color:var(--ink);line-height:1.6">${c.produto}</div>
+          </div>` : ''}
+
+          <!-- vfx -->
+          ${c.vfx ? `<div style="padding:10px 12px;background:var(--bg);border:1px solid var(--border)">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);margin-bottom:4px">FX / VFX</div>
+            <div style="font-size:12px;font-weight:300;color:var(--ink);line-height:1.6">${c.vfx}</div>
+          </div>` : ''}
+
+          <!-- atencao -->
+          ${hasWarn ? `<div style="grid-column:span 2;padding:10px 12px;background:#fdf0ee;border:1px solid #dda090">
+            <div style="font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:#c0301a;margin-bottom:4px">⚠ Atenção</div>
+            <div style="font-size:12px;font-weight:400;color:#c0301a;line-height:1.6">${c.atencao}</div>
+          </div>` : ''}
+
+        </div>
+      </div>
+    </div>`;
+  });
+
+  // Consolidados
+  if (cons.locacoes?.length) {
+    html += `<div style="font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin:28px 0 14px">Locações</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:28px">
+      <tr style="background:var(--bg2)">${['Locação','Tipo','Período','Cenas','Obs'].map(h=>`<th style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr>
+      ${cons.locacoes.map(l=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 10px;font-size:12px;font-weight:400;color:var(--ink)">${l.nome}</td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${l.tipo}</td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${l.periodo}</td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${l.cenas}</td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${l.obs}</td>
+      </tr>`).join('')}
+    </table>`;
+  }
+
+  if (cons.elenco?.length) {
+    html += `<div style="font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px">Elenco completo</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:28px">
+      <tr style="background:var(--bg2)">${['Personagem','Tipo','Cenas','Figurino','Obs'].map(h=>`<th style="font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:8px 10px;border-bottom:1px solid var(--border)">${h}</th>`).join('')}</tr>
+      ${cons.elenco.map(e=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:9px 10px;font-size:12px;font-weight:400;color:var(--ink)">${e.personagem}</td>
+        <td style="padding:9px 10px"><span style="font-size:10px;padding:2px 7px;border:1px solid var(--border);color:var(--ink2)">${e.tipo}</span></td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${e.cenas}</td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${e.figurino}</td>
+        <td style="padding:9px 10px;font-size:11px;font-weight:300;color:var(--ink2)">${e.obs}</td>
+      </tr>`).join('')}
+    </table>`;
+  }
+
+  // Flags
+  if (flags.length) {
+    html += `<div style="font-size:10px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:14px">⚠ Atenção executiva</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+      ${flags.map(f => `
+      <div style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid ${urgBorder[f.urgencia]||'#dda090'};background:${urgBg[f.urgencia]||'#fdf0ee'}">
+        <div style="font-size:10px;font-weight:500;color:${urgColor[f.urgencia]||'#c0301a'};flex-shrink:0;margin-top:1px">${String(f.numero).padStart(2,'0')}</div>
+        <div style="font-size:13px;font-weight:300;color:var(--ink);line-height:1.6">${f.texto}</div>
+        <div style="margin-left:auto;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:${urgColor[f.urgencia]||'#c0301a'};flex-shrink:0">${f.urgencia}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  return html;
+}
+
+function showTab(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.res-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+}
+
+function copyResult() {
+  const text = document.getElementById('result-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✓ Copiado';
+    setTimeout(() => btn.textContent = 'Copiar texto', 2000);
+  });
+}
+
+// ── SIDEBAR ──
+function renderSidebar() {
+  const list = document.getElementById('sidebar-list');
+  const empty = document.getElementById('sidebar-empty');
+
+  // remove old items
+  list.querySelectorAll('.proj-item').forEach(p => p.remove());
+
+  if (projects.length === 0) {
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const label = document.createElement('div');
+  label.className = 'sidebar-label';
+  label.textContent = 'Projetos salvos';
+  list.appendChild(label);
+
+  projects.forEach(proj => {
+    const item = document.createElement('div');
+    item.className = 'proj-item';
+    item.dataset.id = proj.id;
+    item.innerHTML = `
+      <span class="proj-icon">🎬</span>
+      <div class="proj-info">
+        <div class="proj-name">${proj.name}</div>
+        <div class="proj-meta">${proj.cenas} cenas · ${proj.date}</div>
+      </div>
+      <div class="proj-dot done"></div>
+    `;
+    item.onclick = () => showResult(proj);
+    list.appendChild(item);
+  });
+}
+</script>
+</body>
+</html>
